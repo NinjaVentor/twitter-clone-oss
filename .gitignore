@@ -1,0 +1,19 @@
+# Dependencies & build output
+node_modules/
+dist/
+server/twitter-api*
+server/twitter-api.exe
+*.exe
+
+# Env (never commit secrets; platforms inject these)
+.env
+.env.*
+!.env.example
+
+# Local tooling / reference material
+references/
+.opencode/
+.agents/
+
+# Build / runtime scratch
+server/tmp/

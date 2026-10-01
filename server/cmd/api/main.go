@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"strings"
 	"time"
 
 	"twitter-server/internal/config"
@@ -79,8 +80,16 @@ func main() {
 		}
 		return err
 	})
+	origins := "http://localhost:5173,http://localhost:3000"
+	if cfg.FrontendURL != "" {
+		origins += "," + cfg.FrontendURL
+	}
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:5173,http://localhost:3000",
+		AllowOrigins: origins,
+		AllowOriginsFunc: func(origin string) bool {
+			// Preview + production deployments on *.vercel.app.
+			return strings.HasPrefix(origin, "https://") && strings.HasSuffix(origin, ".vercel.app")
+		},
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowMethods:     "GET,POST,PATCH,PUT,DELETE,OPTIONS",
 		AllowCredentials: false,
@@ -145,10 +154,12 @@ func main() {
 
 	app.Get("/ws", hub.Handler())
 
-	addr := ":" + cfg.Port
-	if cfg.Port == "" {
-		addr = ":8080"
+	port := cfg.Port
+	if port == "" {
+		port = "8080"
 	}
+	// Explicit 0.0.0.0 so PaaS hosts (Render/Koyeb) route $PORT to us.
+	addr := "0.0.0.0:" + port
 	log.Printf("api listening on %s", addr)
 	if err := app.Listen(addr); err != nil {
 		log.Fatal(err)

@@ -8,9 +8,22 @@ export interface WsMessage {
   [key: string]: unknown
 }
 
-const WS_URL = (import.meta.env.VITE_WS_URL as string) || 'ws://localhost:8080/ws'
+const WS_URL = resolveWsUrl()
 const PING_INTERVAL = 25000
 const MAX_BACKOFF = 30000
+
+// Production HTTPS must use wss://. If VITE_WS_URL is unset (or was set to an
+// http(s) URL by mistake), derive the socket URL from VITE_API_URL so deploys
+// like https://api.example.com/api/v1 automatically become wss://api.example.com/ws.
+function resolveWsUrl(): string {
+  const explicit = ((import.meta.env.VITE_WS_URL as string) || '').trim()
+  if (explicit.startsWith('ws://') || explicit.startsWith('wss://')) return explicit
+  const api = ((import.meta.env.VITE_API_URL as string) || '').trim().replace(/\/+$/, '')
+  if (api.startsWith('http://') || api.startsWith('https://')) {
+    return api.replace(/^http/, 'ws').replace(/\/api\/v1$/, '/ws')
+  }
+  return explicit || 'ws://localhost:8080/ws'
+}
 
 class WsClient {
   private socket: WebSocket | null = null

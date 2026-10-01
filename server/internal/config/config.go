@@ -7,6 +7,7 @@ import (
 
 type Config struct {
 	Port                   string
+	FrontendURL            string
 	DatabaseURL            string
 	SupabaseURL            string
 	SupabaseAnonKey        string
@@ -46,6 +47,7 @@ func Load() Config {
 	}
 	return Config{
 		Port:                   getenv("PORT", "8080"),
+		FrontendURL:            strings.TrimRight(os.Getenv("FRONTEND_URL"), "/"),
 		DatabaseURL:            os.Getenv("DATABASE_URL"),
 		SupabaseURL:            strings.TrimRight(os.Getenv("SUPABASE_URL"), "/"),
 		SupabaseAnonKey:        os.Getenv("SUPABASE_ANON_KEY"),
