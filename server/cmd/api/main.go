@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
+	"os"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"twitter-server/internal/config"
@@ -95,9 +98,18 @@ func main() {
 		AllowCredentials: false,
 	}))
 
-	app.Get("/health", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"ok": true})
-	})
+	// Production keep-alive health router (Render + UptimeRobot). Registered
+	// before any auth middleware. Hits only touch memory; DB/Valkey are
+	// pinged at most every 10 minutes so 5-minute monitor pings don't spam.
+	var valkeyPing func(context.Context) error
+	if vc != nil {
+		valkeyPing = func(ctx context.Context) error {
+			return vc.Do(ctx, vc.B().Ping().Build()).Error()
+		}
+	}
+	registerHealthz(app, pool.Ping, valkeyPing)
+	// Self-ping keeps free Render instances from spinning down after 15m idle.
+	startSelfPing(strings.TrimRight(os.Getenv("RENDER_EXTERNAL_URL"), "/"), os.Getenv("SELF_PING_URL"))
 
 	v1 := app.Group("/api/v1")
 	auth := middleware.Authenticate(cfg, pool, vc)
@@ -164,4 +176,71 @@ func main() {
 	if err := app.Listen(addr); err != nil {
 		log.Fatal(err)
 	}
+}
+
+var (
+	bootTime      = time.Now()
+	lastWarmCheck atomic.Int64 // unix seconds of last DB/Valkey warm ping
+)
+
+// registerHealthz serves GET+HEAD on /healthz, /health and /api/v1/health.
+// Every hit is memory-only; a background DB pool.Ping + Valkey PING (2s
+// timeout) fires at most every 10 minutes to keep cloud connections warm.
+func registerHealthz(app *fiber.App, poolPing, valkeyPing func(context.Context) error) {
+	handler := func(c *fiber.Ctx) error {
+		now := time.Now()
+		if last := lastWarmCheck.Load(); now.Unix()-last >= 600 &&
+			lastWarmCheck.CompareAndSwap(last, now.Unix()) {
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+				defer cancel()
+				if poolPing != nil {
+					if err := poolPing(ctx); err != nil {
+						log.Printf("keep-alive db ping failed: %v", err)
+					}
+				}
+				if valkeyPing != nil {
+					if err := valkeyPing(ctx); err != nil {
+						log.Printf("keep-alive valkey ping failed: %v", err)
+					}
+				}
+			}()
+		}
+		c.Set("Cache-Control", "no-store, no-cache, must-revalidate")
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"status":         "ok",
+			"uptime_seconds": int64(now.Sub(bootTime).Seconds()),
+		})
+	}
+	for _, p := range []string{"/healthz", "/health", "/api/v1/health"} {
+		app.Get(p, handler)
+		app.Head(p, handler)
+	}
+}
+
+// startSelfPing GETs target+"/healthz" every 12 minutes so free Render
+// instances never hit the 15-minute idle spin-down. No-op when no URL set.
+func startSelfPing(renderURL, selfURL string) {
+	target := renderURL
+	if target == "" {
+		target = strings.TrimRight(selfURL, "/")
+	}
+	if target == "" {
+		return
+	}
+	target += "/healthz"
+	go func() {
+		client := &http.Client{Timeout: 10 * time.Second}
+		ticker := time.NewTicker(12 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			resp, err := client.Get(target)
+			if err != nil {
+				log.Printf("self-ping failed: %v", err)
+				continue
+			}
+			resp.Body.Close()
+		}
+	}()
+	log.Printf("self-ping enabled: %s every 12m", target)
 }
