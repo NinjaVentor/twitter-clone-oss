@@ -17,9 +17,10 @@ interface NotificationsCache {
   pages: { notifications: Notification[]; next_cursor?: string | null }[]
 }
 
-interface ConversationsCache {
-  conversations: Conversation[]
-}
+// NOTE: the ['conversations'] cache holds the BARE ARRAY returned by
+// GET /messages/conversations — not { conversations: [...] }. Every updater
+// below must treat it as Conversation[] or it throws and kills the event.
+type ConversationList = Conversation[]
 
 interface ThreadCache {
   messages: Message[]
@@ -153,16 +154,21 @@ function upsertConversation(
   partnerId: string,
   incoming: boolean,
 ) {
-  queryClient.setQueryData<ConversationsCache>(['conversations'], (old) => {
+  queryClient.setQueryData<ConversationList>(['conversations'], (old) => {
     if (!old) return old
-    const rest = old.conversations.filter((c) => c.partner?.id !== partnerId)
-    const existing = old.conversations.find((c) => c.partner?.id === partnerId)
-    const updated: Conversation = {
-      partner: existing?.partner,
-      last_message: m,
-      unread_count: (existing?.unread_count ?? 0) + (incoming ? 1 : 0),
+    const existing = old.find((c) => c.partner?.id === partnerId)
+    if (!existing) {
+      // Brand-new thread: we lack the partner profile, so refetch from server.
+      void queryClient.invalidateQueries({ queryKey: ['conversations'] })
+      return old
     }
-    return { conversations: [updated, ...rest] }
+    const rest = old.filter((c) => c.partner?.id !== partnerId)
+    const updated: Conversation = {
+      partner: existing.partner,
+      last_message: m,
+      unread_count: existing.unread_count + (incoming ? 1 : 0),
+    }
+    return [updated, ...rest]
   })
 }
 
@@ -198,15 +204,13 @@ function updateConversationLast(
   patch: Partial<Message>,
   messageId: string,
 ) {
-  queryClient.setQueryData<ConversationsCache>(['conversations'], (old) => {
+  queryClient.setQueryData<ConversationList>(['conversations'], (old) => {
     if (!old) return old
-    return {
-      conversations: old.conversations.map((c) =>
-        c.partner?.id === partnerId && c.last_message?.id === messageId
-          ? { ...c, last_message: { ...c.last_message, ...patch } }
-          : c,
-      ),
-    }
+    return old.map((c) =>
+      c.partner?.id === partnerId && c.last_message?.id === messageId
+        ? { ...c, last_message: { ...c.last_message, ...patch } }
+        : c,
+    )
   })
 }
 
@@ -232,9 +236,9 @@ function removeMessageEverywhere(queryClient: ReturnType<typeof useQueryClient>,
     if (!old.messages.some((x) => x.id === id)) return old
     return { messages: old.messages.filter((x) => x.id !== id) }
   })
-  queryClient.setQueryData<ConversationsCache>(['conversations'], (old) => {
+  queryClient.setQueryData<ConversationList>(['conversations'], (old) => {
     if (!old) return old
-    const needsRefetch = old.conversations.some((c) => c.last_message?.id === id)
+    const needsRefetch = old.some((c) => c.last_message?.id === id)
     if (needsRefetch) lastDeleted = true
     return old
   })
