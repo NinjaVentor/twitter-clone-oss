@@ -1,0 +1,15 @@
+# Env files (never commit secrets)
+.env
+.env.local
+.env.development
+.env.production
+.env.*
+!.env.example
+
+# Build output & local binaries
+twitter-api*
+*.exe
+
+# Runtime scratch
+tmp/
+*.log

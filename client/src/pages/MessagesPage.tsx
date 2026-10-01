@@ -415,11 +415,17 @@ function ThreadView({ userId, onBack }: { userId: string; onBack: () => void }) 
                     </div>
                   )}
                   <p
-                    className={`text-[12px] text-[#71767b] ${m.reaction ? 'mt-3.5' : 'mt-0.5'} ${
-                      mine ? 'text-right' : 'text-left'
+                    className={`${m.reaction ? 'mt-3.5' : 'mt-1'} flex items-center gap-1 text-[11px] text-[#71767b] ${
+                      mine ? 'justify-end' : 'justify-start'
                     }`}
                   >
                     {timeAgo(m.created_at)}
+                    {mine && lastOwn?.is_read && m.id === lastOwn.id && (
+                      <>
+                        <span aria-hidden="true">•</span>
+                        <Check className="h-3 w-3" color="#1d9bf0" /> Seen
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
@@ -429,11 +435,6 @@ function ThreadView({ userId, onBack }: { userId: string; onBack: () => void }) 
         {typing && (
           <p className="py-1 text-[14px] text-[#1d9bf0]">
             @{partner?.username ?? 'them'} is typing…
-          </p>
-        )}
-        {lastOwn?.is_read && messages.length > 0 && !typing && (
-          <p className="flex items-center justify-end gap-1 py-1 text-[13px] text-[#71767b]">
-            <Check className="h-3.5 w-3.5" color="#1d9bf0" /> Seen
           </p>
         )}
       </div>
