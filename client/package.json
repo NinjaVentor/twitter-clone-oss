@@ -1,0 +1,47 @@
+{
+  "name": "client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "check": "oxlint src --deny-warnings && tsc -b --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@floating-ui/react": "^0.27.20",
+    "@heroicons/react": "^2.2.0",
+    "@supabase/supabase-js": "^2.117.2",
+    "@tanstack/react-query": "^5.104.0",
+    "@twemoji/api": "^17.0.3",
+    "axios": "^1.20.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "emoji-picker-react": "^4.22.3",
+    "framer-motion": "^13.4.5",
+    "lucide-react": "^1.48.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.4",
+    "react-virtuoso": "^4.18.15",
+    "tailwind-merge": "^3.7.0",
+    "twemoji-parser": "^14.0.0",
+    "twitter-text": "^3.1.0",
+    "yet-another-react-lightbox": "^3.32.2",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@types/twitter-text": "^3.1.10",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.86.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0"
+  }
+}

@@ -1,0 +1,227 @@
+@import "tailwindcss";
+
+/* Base canvas: pure black immediately so a slow/failed boot never flashes white. */
+html,
+body,
+#root {
+  background-color: #000000;
+  color: #e7e9ea;
+  min-height: 100vh;
+}
+
+/* TwitterChirp — 4 weights served locally from /public/fonts (zero CORS/404 risk) */
+@font-face {
+  font-family: "TwitterChirp";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/chirp-regular-web.woff") format("woff");
+}
+@font-face {
+  font-family: "TwitterChirp";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/chirp-medium-web.woff") format("woff");
+}
+@font-face {
+  font-family: "TwitterChirp";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/chirp-bold-web.woff") format("woff");
+}
+@font-face {
+  font-family: "TwitterChirp";
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/chirp-heavy-web.woff") format("woff");
+}
+
+@theme {
+  --font-sans: "TwitterChirp", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --color-x-blue: #1d9bf0;
+  --color-x-border: #2f3336;
+}
+
+html {
+  font-family: var(--font-sans);
+}
+
+/* ---- Theme engine: variables per background ---- */
+:root,
+html[data-theme='lights-out'] {
+  --bg-primary: #000000;
+  --bg-elevated: #16181c;
+  --bg-hover: #080808;
+  --text-primary: #e7e9ea;
+  --text-secondary: #71767b;
+  --border-color: #2f3336;
+  --accent-color: #1d9bf0;
+  --accent-hover: #1a8cd8;
+}
+html[data-theme='dim'] {
+  --bg-primary: #15202b;
+  --bg-elevated: #1e2732;
+  --bg-hover: #1c2938;
+  --text-primary: #f7f9f9;
+  --text-secondary: #8b98a5;
+  --border-color: #38444d;
+  --accent-color: #1d9bf0;
+  --accent-hover: #1a8cd8;
+  --color-x-border: #38444d;
+}
+html[data-theme='default'] {
+  color-scheme: light;
+  --bg-primary: #ffffff;
+  --bg-elevated: #f7f9f9;
+  --bg-hover: #eff3f4;
+  --text-primary: #0f1419;
+  --text-secondary: #536471;
+  --border-color: #eff3f4;
+  --accent-color: #1d9bf0;
+  --accent-hover: #1a8cd8;
+}
+
+/*
+ * Hardcoded dark-mode utilities remap: when Default (light) or Dim is
+ * active, classes authored for Lights-out resolve through the theme
+ * variables instead, so the whole app re-themes with zero black boxes.
+ * Unlayered author CSS beats Tailwind's @layer utilities, so no
+ * !important is needed. Semantic colors (pink/green/red) are untouched.
+ */
+html[data-theme='default'] .bg-black,
+html[data-theme='dim'] .bg-black,
+html[data-theme='default'] .bg-\[\#000000\],
+html[data-theme='dim'] .bg-\[\#000000\] {
+  background-color: var(--bg-primary);
+}
+html[data-theme='default'] .bg-black\/65,
+html[data-theme='dim'] .bg-black\/65,
+html[data-theme='default'] .bg-black\/80,
+html[data-theme='dim'] .bg-black\/80,
+html[data-theme='default'] .bg-black\/40,
+html[data-theme='dim'] .bg-black\/40,
+html[data-theme='default'] .bg-black\/60,
+html[data-theme='dim'] .bg-black\/60,
+html[data-theme='default'] .bg-black\/70,
+html[data-theme='dim'] .bg-black\/70 {
+  background-color: color-mix(in srgb, var(--bg-primary) 72%, transparent);
+}
+html[data-theme='default'] .bg-\[\#16181c\],
+html[data-theme='dim'] .bg-\[\#16181c\],
+html[data-theme='default'] .bg-\[\#202327\],
+html[data-theme='dim'] .bg-\[\#202327\],
+html[data-theme='default'] .bg-\[\#333639\],
+html[data-theme='dim'] .bg-\[\#333639\] {
+  background-color: var(--bg-elevated);
+}
+html[data-theme='default'] .bg-\[\#080808\],
+html[data-theme='dim'] .bg-\[\#080808\] {
+  background-color: var(--bg-hover);
+}
+/* Per-theme tweet hover: translucent wash instead of a hardcoded dark fill,
+   so hovered cards stay readable in every theme (real X behavior). */
+html[data-theme='lights-out'] .hover\:bg-\[\#080808\]:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+html[data-theme='dim'] .hover\:bg-\[\#080808\]:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+html[data-theme='default'] .hover\:bg-\[\#080808\]:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+html[data-theme='default'] .text-\[\#e7e9ea\],
+html[data-theme='dim'] .text-\[\#e7e9ea\] {
+  color: var(--text-primary);
+}
+/* White text follows the theme — except on accent/danger buttons where it
+   must stay white for contrast. */
+html[data-theme='default'] .text-white:not(.bg-\[\#1d9bf0\]):not(.bg-\[\#f4212e\]),
+html[data-theme='dim'] .text-white:not(.bg-\[\#1d9bf0\]):not(.bg-\[\#f4212e\]) {
+  color: var(--text-primary);
+}
+html[data-theme='default'] .text-\[\#71767b\],
+html[data-theme='dim'] .text-\[\#71767b\] {
+  color: var(--text-secondary);
+}
+html[data-theme='default'] .placeholder\:text-\[\#71767b\]::placeholder,
+html[data-theme='dim'] .placeholder\:text-\[\#71767b\]::placeholder {
+  color: var(--text-secondary);
+}
+html[data-theme='default'] .border-\[\#2f3336\],
+html[data-theme='dim'] .border-\[\#2f3336\],
+html[data-theme='default'] .border-\[\#333639\],
+html[data-theme='dim'] .border-\[\#333639\],
+html[data-theme='default'] .border-\[\#536471\],
+html[data-theme='dim'] .border-\[\#536471\] {
+  border-color: var(--border-color);
+}
+html[data-theme='default'] .bg-\[\#1d9bf0\],
+html[data-theme='dim'] .bg-\[\#1d9bf0\] {
+  background-color: var(--accent-color);
+}
+html[data-theme='default'] .text-\[\#1d9bf0\],
+html[data-theme='dim'] .text-\[\#1d9bf0\] {
+  color: var(--accent-color);
+}
+html[data-theme='default'] .border-\[\#1d9bf0\],
+html[data-theme='dim'] .border-\[\#1d9bf0\] {
+  border-color: var(--accent-color);
+}
+html[data-theme='default'] .hover\:bg-\[\#1a8cd8\]:hover,
+html[data-theme='dim'] .hover\:bg-\[\#1a8cd8\]:hover {
+  background-color: var(--accent-hover);
+}
+html[data-theme='default'] .hover\:bg-\[\#e7e9ea1a\]:hover,
+html[data-theme='default'] .hover\:bg-\[\#e7e9ea08\]:hover {
+  background-color: rgba(15, 20, 25, 0.08);
+}
+
+body {
+  margin: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+/* Crisp Twitter SVG emojis rendered by TwemojiText */
+.twemoji {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: -0.2em;
+  margin: 0 0.05em;
+}
+
+/* Fixed-size variants (immune to cascade-layer fights with Tailwind utilities) */
+.twemoji-jumbo,
+.twemoji-rxn-lg,
+.twemoji-rxn {
+  display: inline-block;
+  flex: none;
+  margin: 0 1px;
+  vertical-align: middle;
+}
+.twemoji-jumbo { width: 36px; height: 36px; }
+.twemoji-rxn-lg { width: 24px; height: 24px; }
+.twemoji-rxn { width: 16px; height: 16px; }
+
+/* Thin dark scrollbars like X */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2f3336 transparent;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #2f3336;
+  border-radius: 999px;
+}

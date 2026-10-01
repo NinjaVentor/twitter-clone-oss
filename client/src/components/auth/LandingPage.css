@@ -1,0 +1,113 @@
+/* Exact landing art + panel design, scoped under .tw-landing so nothing leaks. */
+.tw-landing {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  display: flex;
+  height: 100%;
+  min-height: 560px;
+  min-height: 100svh;
+  background: #000;
+  color: #e7e9ea;
+  font-family: "TwitterChirp", "Chirp", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.tw-landing .twl-art {
+  position: relative;
+  flex: 1 1 55%;
+  overflow: hidden;
+  background: #1d9bf0;
+}
+.tw-landing .twl-art svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.tw-landing .twl-pop {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: twl-pop 0.55s cubic-bezier(0.3, 1.7, 0.5, 1) both;
+}
+@keyframes twl-pop {
+  from { transform: scale(0) rotate(-6deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.tw-landing .twl-panel {
+  flex: 1 1 45%;
+  display: flex;
+  align-items: center;
+  padding: 0 clamp(24px, 6vw, 90px);
+}
+.tw-landing .twl-box { width: 100%; max-width: 330px; }
+.tw-landing h1 {
+  font-size: clamp(40px, 5.2vw, 64px);
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 1.05;
+  margin: 0 0 48px;
+  white-space: nowrap;
+}
+.tw-landing h2 { font-size: 31px; font-weight: 800; margin: 0 0 26px; }
+.tw-landing .twl-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 44px;
+  border-radius: 999px;
+  font: 700 15px inherit;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+.tw-landing .twl-btn:disabled { opacity: 0.6; cursor: default; }
+.tw-landing .twl-g { background: #fff; color: #0f1419; }
+.tw-landing .twl-g:hover { background: #e7e9ea; }
+.tw-landing .twl-c { background: var(--twl-blue, #1d9bf0); color: #fff; }
+.tw-landing .twl-c:hover { background: #1a8cd8; }
+.tw-landing .twl-s { background: transparent; color: #1d9bf0; border-color: #536471; }
+.tw-landing .twl-s:hover { background: rgba(29, 155, 240, 0.1); }
+.tw-landing .twl-btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.tw-landing .twl-or { display: flex; align-items: center; gap: 6px; margin: 8px 0; font-size: 15px; }
+.tw-landing .twl-or:before, .tw-landing .twl-or:after { content: ""; flex: 1; height: 1px; background: #2f3336; }
+.tw-landing small { display: block; margin: 10px 0 40px; font-size: 11.5px; line-height: 1.5; color: #71767b; }
+.tw-landing small a { color: #1d9bf0; text-decoration: none; }
+.tw-landing small a:hover { text-decoration: underline; }
+.tw-landing h3 { font-size: 17px; font-weight: 700; margin: 0 0 20px; }
+.tw-landing .twl-err { margin: 8px 0 0; font-size: 13px; color: #f4212e; }
+.tw-landing .twl-float { transform-box: fill-box; transform-origin: center; animation: twl-float 5s ease-in-out infinite; }
+@keyframes twl-float { 50% { transform: translateY(-8px); } }
+.tw-landing .twl-breathe { animation: twl-breathe 3.6s ease-in-out infinite; }
+@keyframes twl-breathe { 50% { transform: translateY(-6px); } }
+.tw-landing .twl-beat { transform-box: fill-box; transform-origin: center; animation: twl-beat 1.6s ease-in-out infinite; }
+@keyframes twl-beat { 0%, 60%, 100% { transform: scale(1); } 15% { transform: scale(1.22); } 45% { transform: scale(1.14); } }
+.tw-landing .twl-ring { transform-box: fill-box; transform-origin: center; animation: twl-ring 4s ease-out infinite; }
+@keyframes twl-ring { 0% { transform: scale(1); opacity: 0.75; } 100% { transform: scale(1.38); opacity: 0; } }
+.tw-landing .twl-rise { opacity: 0; animation: twl-rise 5.5s ease-in infinite; }
+@keyframes twl-rise {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  15% { opacity: 0.95; }
+  100% { transform: translateY(-250px) scale(1.1); opacity: 0; }
+}
+.tw-landing .twl-twinkle { transform-box: fill-box; transform-origin: center; animation: twl-tw 2.4s ease-in-out infinite; }
+@keyframes twl-tw { 50% { transform: scale(0.4) rotate(45deg); opacity: 0.4; } }
+.tw-landing .twl-scroll { animation: twl-scroll 1.8s linear infinite; }
+@keyframes twl-scroll { to { transform: translateY(-16px); } }
+.tw-landing .twl-txt { transition: opacity 0.25s, transform 0.25s; }
+@media (max-width: 900px) {
+  .tw-landing .twl-art { display: none; }
+  .tw-landing .twl-panel { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tw-landing .twl-pop, .tw-landing .twl-float, .tw-landing .twl-breathe,
+  .tw-landing .twl-beat, .tw-landing .twl-ring, .tw-landing .twl-rise,
+  .tw-landing .twl-twinkle, .tw-landing .twl-scroll { animation: none; }
+  .tw-landing .twl-rise { opacity: 0; }
+}
